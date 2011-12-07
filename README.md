@@ -7,9 +7,11 @@ How to set up
 Put inspect_shell.py in the directory of the program you want to inspect.
 
 Add
+
 ```python
 import inspect_shell
 ```
+
 to the top of that program.
 
 That's it.
@@ -19,7 +21,7 @@ How to use
 
 Run your program.  Then run:
 
-    $ python pypandora.py
+    $ python inspect_shell.py
     
 You'll now have an interactive shell to your program.  Anything you do will
 affect the program *on the fly.*
