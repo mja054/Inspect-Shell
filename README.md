@@ -14,7 +14,7 @@ import inspect_shell
 
 to the top of that script.
 
-That's it.
+**That's it.**
 
 How to use
 ==========
@@ -24,4 +24,4 @@ Run your script.  Then run:
     $ python inspect_shell.py
     
 You'll now have an interactive shell to your script.  Anything you do will
-affect the script *on the fly.*
+affect the script **on the fly.**
