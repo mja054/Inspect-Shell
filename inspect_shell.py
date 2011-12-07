@@ -99,7 +99,7 @@ def open_shell(port):
     sock = socket.socket()
     sock.connect(("localhost", port))
     
-    prompt = "is-%d> " % port
+    prompt = "is:%d> " % port
 
     while True:
         line = raw_input(prompt)
