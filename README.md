@@ -40,3 +40,9 @@ Example
     $ rs:1234> some_module.some_config_value = 292
 
 ...And your script keeps on running, but with whatever changes you made from the shell.
+
+
+Be Careful
+==========
+
+Inspect Shell provides *no locking* when you're altering the global and local namespace.  You may experience undefined behavior if you do much more than passively examine objects.
