@@ -102,7 +102,9 @@ def open_shell(port):
     prompt = "is:%d> " % port
 
     while True:
-        line = raw_input(prompt)
+        try: line = raw_input(prompt)
+        except EOFError: return
+        
         data = struct.pack("i", len(line)) + line
         sock.send(data)
 
