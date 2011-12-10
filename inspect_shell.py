@@ -47,7 +47,10 @@ default_port = 1234
 
 
 
-
+# this is used when we "exec" the code sent from the shell.  it essentially
+# captures all stdout and returns it as a string.  we use a contextmanager
+# to make absolutely sure that the real stdout is reassigned to sys.stdout
+# no matter what happens 
 @contextlib.contextmanager
 def stdoutIO():
     stdout = StringIO.StringIO()
@@ -65,7 +68,6 @@ class PortInUseException(Exception): pass
 # actions that the shell can make to the server
 COMMAND = "\x00"
 AUTO_COMPLETE = "\x01"
-
 
 
 
@@ -117,6 +119,7 @@ def run_shell_server(f_globals, port):
                 do_reply(ac)
             
     
+    # our main loop for dispatching new connections
     while True:
         new_conn, addr = sock.accept()
         ct = threading.Thread(target=run_repl, args=(new_conn,))
