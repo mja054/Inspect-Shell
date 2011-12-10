@@ -53,7 +53,7 @@ class PortInUseException(Exception): pass
 
 
 
-def run_shell_server(f_globals, f_locals, port):        
+def run_shell_server(f_globals, port):        
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
@@ -77,7 +77,7 @@ def run_shell_server(f_globals, f_locals, port):
 
             with stdoutIO() as stdout:
                 # lets us exec AND eval
-                try: exec compile(code, "<dummy>", "single") in f_globals, f_locals
+                try: exec compile(code, "<dummy>", "single") in f_globals, f_globals
                 except: print traceback.format_exc()
 
             out = stdout.getvalue()
@@ -130,7 +130,7 @@ else:
     f_globals = caller.f_globals
     port = f_globals.get("inspect_shell_port", default_port)
     
-    st = threading.Thread(target=run_shell_server, args=(f_globals, caller.f_locals, port))
+    st = threading.Thread(target=run_shell_server, args=(f_globals, port))
     st.daemon = True
     st.start()
     
