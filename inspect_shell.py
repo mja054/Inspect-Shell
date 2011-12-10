@@ -185,6 +185,16 @@ def open_shell(port):
 if __name__ == "__main__":    
     try: port = int(sys.argv[1])
     except: port = default_port
+    
+    if readline:
+        import os
+        import atexit
+        
+        histfile = os.path.join(os.path.expanduser("~"), ".inspect_shell_history")
+        try: readline.read_history_file(histfile)
+        except IOError: pass
+        atexit.register(readline.write_history_file, histfile)
+    
     open_shell(port)
     
 # it's being imported, run the shell server
