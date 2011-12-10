@@ -30,11 +30,20 @@ import inspect
 import threading
 import random
 import socket
+import json
 
 
+
+import rlcompleter
+try: import readline
+except ImportError: readline = None
 
 
 default_port = 1234
+
+
+
+
 
 
 
@@ -53,7 +62,16 @@ class PortInUseException(Exception): pass
 
 
 
-def run_shell_server(f_globals, port):        
+# actions that the shell can make to the server
+COMMAND = "\x00"
+AUTO_COMPLETE = "\x01"
+
+
+
+
+def run_shell_server(f_globals, port):     
+    auto_complete = rlcompleter.Completer(namespace=f_globals)
+           
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
@@ -63,26 +81,40 @@ def run_shell_server(f_globals, port):
             raise PortInUseException("%d in use" % port)
         else: raise
         
-    sock.listen(100)
-    #sock.setblocking(0)    
+    sock.listen(100)   
+    
     
     def run_repl(sock):
-        while True:
-            size = sock.recv(4)
-            if not size: return
-            size = struct.unpack("i", size)[0]
-
-            code = sock.recv(size)
-            if not code: return
-
-            with stdoutIO() as stdout:
-                # lets us exec AND eval
-                try: exec compile(code, "<dummy>", "single") in f_globals, f_globals
-                except: print traceback.format_exc()
-
-            out = stdout.getvalue()
-            out = struct.pack("i", len(out)) + out
+        
+        def do_reply(data):
+            data = json.dumps(data)
+            out = struct.pack("i", len(data)) + data
             sock.send(out)
+
+        while True:
+            data = sock.recv(5)
+            #print repr(data)
+            
+            if not data: return
+            action, size = struct.unpack("!ci", data)
+
+            data = sock.recv(size)
+            if not data: return
+            data = json.loads(data)
+            
+            
+            if action == COMMAND:
+                with stdoutIO() as stdout:
+                    # lets us exec AND eval
+                    try: exec compile(data, "<dummy>", "single") in f_globals, f_globals
+                    except: print traceback.format_exc()
+    
+                out = stdout.getvalue()
+                do_reply(out)
+            
+            elif action == AUTO_COMPLETE:
+                ac = auto_complete.complete(*data)
+                do_reply(ac)
             
     
     while True:
@@ -95,9 +127,37 @@ def run_shell_server(f_globals, port):
 
 
 
+
+
 def open_shell(port):
     sock = socket.socket()
     sock.connect(("localhost", port))
+
+    
+    
+    def do_request(action, data):
+        data = json.dumps(data)
+        data = action + struct.pack("!i", len(data)) + data
+        sock.send(data)
+    
+        size = sock.recv(4)
+        if not size: return
+        size = struct.unpack("i", size)[0]
+    
+        if size:
+            reply = sock.recv(size)
+            return json.loads(reply)
+        
+            
+        
+    if readline:
+        def auto_completer(*args):
+            reply = do_request(AUTO_COMPLETE, args)
+            return reply
+        
+        readline.set_completer(auto_completer)
+        readline.parse_and_bind("tab: complete")
+            
     
     prompt = "is:%d> " % port
 
@@ -105,23 +165,21 @@ def open_shell(port):
         try: line = raw_input(prompt)
         except EOFError: return
         
-        data = struct.pack("i", len(line)) + line
-        sock.send(data)
-
-        size = sock.recv(4)
-        if not size: return
-        size = struct.unpack("i", size)[0]
-
-        if size:
-            reply = sock.recv(size)
-            print reply
+        reply = do_request(COMMAND, line)
+        if reply is not None: print reply
             
             
+
+
+
+
+
+
 
 
 
 # running from commandline, open a shell
-if __name__ == "__main__":
+if __name__ == "__main__":    
     try: port = int(sys.argv[1])
     except: port = default_port
     open_shell(port)
