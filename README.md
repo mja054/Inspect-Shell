@@ -1,6 +1,7 @@
 Ever want to know what the hell that python script is doing?  Enter the
 Inspect Shell.  Inspect Shell lets you print/alter globals and run functions
-without interrupting the running script.
+without interrupting the running script.  Now with auto-complete and
+command history (only on linux).
 
 Inspect Shell is not a pdb-style debugger.
 
@@ -27,7 +28,9 @@ Run your script.  Then run:
     $ python inspect_shell.py
     
 You'll now have an interactive shell to your script.  Anything you do will
-affect the script **on the fly.**  Be careful :)
+affect the script **on the fly.**  However, be mindful that Inspect Shell provides
+*no locking* when you're altering global namespace of your script.  The
+best uses for Inspect Shell are for passive inspection of objects.
 
 Example
 =======
@@ -40,9 +43,3 @@ Example
     $ rs:1234> some_module.some_config_value = 292
 
 ...And your script keeps on running, but with whatever changes you made from the shell.
-
-
-Be Careful
-==========
-
-Inspect Shell provides *no locking* when you're altering the global and local namespace.  You may experience undefined behavior if you do much more than passively examine objects.
